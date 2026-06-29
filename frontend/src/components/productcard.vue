@@ -1,16 +1,19 @@
 <script setup>
 import { computed } from 'vue'
-
-// ---------------------------------------------------------------
-// PROPS: data this component receives from its parent
-// Field names match our PRODUCTS table from the ERD exactly.
-// When we connect to the Laravel API in Week 6, the JSON response
-// will have these same field names — no renaming needed.
-// ---------------------------------------------------------------
+import salescard from '@/stores/productVue.js'
+ 
 const props = defineProps({
   product: {
     type: Object,
     required: true
+  },
+  currency: {
+    type: String,
+    default: 'KES'
+  },
+  exchangeRate: {
+    type: Number,
+    default: 1
   }
 })
 
@@ -36,9 +39,18 @@ const shelfLifeStatus = computed(() => {
   return { label: 'Long shelf life', class: 'long', icon: '🟢' }
 })
 
-// Format price with commas for readability: 1000 → 1,000
+// Format price with conversion and commas
+const convertedPrice = computed(() => {
+  return props.product.selling_price * props.exchangeRate
+})
+
 const formattedPrice = computed(() => {
-  return props.product.selling_price.toLocaleString()
+  // Use 2 decimal places for non-KES currencies, 0 for KES if it's a whole number
+  const fractionDigits = props.currency === 'KES' ? 0 : 2
+  return convertedPrice.value.toLocaleString(undefined, { 
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits
+  })
 })
 
 function handleSell() {
@@ -53,6 +65,8 @@ function handleToggleActive() {
   emit('toggle-active', props.product.id)
 }
 </script>
+
+
 
 <template>
   <div class="product-card" :class="{ 'inactive': !product.is_active }">
@@ -71,7 +85,7 @@ function handleToggleActive() {
 
     <!-- Price display -->
     <div class="price-section">
-      <span class="price">KES {{ formattedPrice }}</span>
+      <span class="price">{{ currency }} {{ formattedPrice }}</span>
       <span class="unit">per {{ product.unit }}</span>
     </div>
 
@@ -83,7 +97,7 @@ function handleToggleActive() {
 
     <!-- Inactive product warning -->
     <div v-if="!product.is_active" class="inactive-banner">
-      ⚠ Product inactive — not available for sale
+       Product inactive — not available for sale
     </div>
 
     <!-- Action buttons -->
@@ -100,13 +114,15 @@ function handleToggleActive() {
 
 <style scoped>
 .product-card {
-  background: rgba(30, 41, 59, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  border-radius: 16px;
+  /* Updated to match the deep dark blue of the layout's navbar and cards */
+  background: rgba(10, 25, 47, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  /* Matching the exact primary blue border alpha from the layout */
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 12px; /* Standardized radius with the main design */
   padding: 1.5rem;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 30px -10px rgba(2, 12, 27, 0.5);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
@@ -126,13 +142,14 @@ function handleToggleActive() {
 
 .product-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.4);
+
+  box-shadow: 0 12px 32px rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.45);
 }
 
 .product-card.inactive {
-  opacity: 0.5;
-  filter: grayscale(80%);
+  opacity: 0.4;
+  filter: grayscale(90%);
 }
 .product-card.inactive::before {
   background: #4B5563;
@@ -266,8 +283,8 @@ function handleToggleActive() {
   box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
 }
 .btn-primary:disabled { 
-  background: #334155; 
-  color: #94A3B8;
+  background: #2D3748; /* Darkened disabled state to blend into background */
+  color: #718096;
   box-shadow: none;
   cursor: not-allowed; 
 }

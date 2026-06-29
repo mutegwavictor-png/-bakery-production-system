@@ -9,7 +9,7 @@ const products = ref([
     name: 'White Bread',
     category: 'bread',
     selling_price: 60,
-    shelf_life_hours: 24,
+    shelf_life_hours: 14,
     unit: 'loaf',
     is_active: true
   },
@@ -17,7 +17,7 @@ const products = ref([
     id: 2,
     name: 'Chocolate Cake',
     category: 'cake',
-    selling_price: 1500,
+    selling_price: 150,
     shelf_life_hours: 48,
     unit: 'piece',
     is_active: true
@@ -35,7 +35,7 @@ const products = ref([
     id: 4,
     name: 'Burger Bun',
     category: 'bun',
-    selling_price: 20,
+    selling_price: 200,
     shelf_life_hours: 8,
     unit: 'piece',
     is_active: false
@@ -75,8 +75,41 @@ const products = ref([
     shelf_life_hours: 8,
     unit: 'piece',
     is_active: true
+  },
+  {
+    id: 9,
+    name: 'Sausage Roll',
+    category: 'pastry',
+    selling_price: 50,
+    shelf_life_hours: 12,
+    unit: 'piece',
+    is_active: true
+  },
+  {
+    id: 10,
+    name: 'Vanilla Cupcake',
+    category: 'cake',
+    selling_price: 200,
+    shelf_life_hours: 48,
+    unit: 'piece',
+    is_active: true
   }
 ])
+
+// Task 4 & 5: Filter active/inactive, Search, Category
+const showInactive = ref(false)
+const searchQuery = ref('')
+const selectedCategory = ref('all')
+
+// Currency configuration
+const currencies = {
+  KES: 1,
+  USD: 0.0076,
+  EUR: 0.0069,
+  GBP: 0.0060
+}
+const selectedCurrency = ref('KES')
+const currentExchangeRate = computed(() => currencies[selectedCurrency.value])
 
 // Task 2: Sale confirmation panel state
 const selectedProduct = ref(null)
@@ -84,7 +117,25 @@ const saleQuantity = ref(1)
 
 const saleTotal = computed(() => {
   if (!selectedProduct.value) return 0
-  return selectedProduct.value.selling_price * saleQuantity.value
+  const convertedPrice = selectedProduct.value.selling_price * currentExchangeRate.value
+  return convertedPrice * saleQuantity.value
+})
+
+const formattedSaleTotal = computed(() => {
+  const fractionDigits = selectedCurrency.value === 'KES' ? 0 : 2
+  return saleTotal.value.toLocaleString(undefined, {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits
+  })
+})
+
+const convertedSalePrice = computed(() => {
+  if (!selectedProduct.value) return 0
+  const fractionDigits = selectedCurrency.value === 'KES' ? 0 : 2
+  return (selectedProduct.value.selling_price * currentExchangeRate.value).toLocaleString(undefined, {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits
+  })
 })
 
 const handleSellProduct = (product) => {
@@ -92,24 +143,26 @@ const handleSellProduct = (product) => {
   saleQuantity.value = 1
 }
 
-const confirmSale = () => {
-  console.log('Confirmed sale of', saleQuantity.value, selectedProduct.value.name)
-  // Simulate an API call or success state here if needed
-  selectedProduct.value = null
-}
+const confirmSale = () => {console.log('Confirmed sale of', saleQuantity.value, selectedProduct.value.name)
+
+alert(`Sale confirmed for ${selectedProduct.value.name} — Qty: ${saleQuantity.value}`)
+
+selectedProduct.value = null}
 
 const handleViewRecipe = (productId) => {
   console.log('Viewing recipe for product ID:', productId)
 }
 
-// Task 4: Filter active/inactive
-const showInactive = ref(false)
-
 const filteredProducts = computed(() => {
-  if (showInactive.value) {
-    return products.value
-  }
-  return products.value.filter(p => p.is_active)
+  return products.value.filter(p => {
+    // 1. Inactive filter
+    if (!showInactive.value && !p.is_active) return false
+    // 2. Category filter
+    if (selectedCategory.value !== 'all' && p.category !== selectedCategory.value) return false
+    // 3. Search filter
+    if (searchQuery.value && !p.name.toLowerCase().includes(searchQuery.value.toLowerCase())) return false
+    return true
+  })
 })
 
 const handleToggleActive = (productId) => {
@@ -134,6 +187,33 @@ const longCount = computed(() => products.value.filter(p => p.shelf_life_hours >
       </button>
     </header>
 
+    <div class="search-filter-bar">
+      <div class="search-input-wrapper">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          v-model="searchQuery" 
+          placeholder="Search products by name..." 
+          class="search-input" 
+        />
+      </div>
+      
+      <select v-model="selectedCategory" class="category-select">
+        <option value="all">All Categories</option>
+        <option value="bread">Bread</option>
+        <option value="cake">Cake</option>
+        <option value="pastry">Pastry</option>
+        <option value="bun">Bun</option>
+      </select>
+
+      <select v-model="selectedCurrency" class="category-select currency-select">
+        <option value="KES">KES</option>
+        <option value="USD">USD</option>
+        <option value="EUR">EUR</option>
+        <option value="GBP">GBP</option>
+      </select>
+    </div>
+
     <div class="controls-bar">
       <!-- Task 3: Summary counters -->
       <div class="summary-counters">
@@ -155,6 +235,8 @@ const longCount = computed(() => products.value.filter(p => p.shelf_life_hours >
         v-for="product in filteredProducts" 
         :key="product.id" 
         :product="product"
+        :currency="selectedCurrency"
+        :exchange-rate="currentExchangeRate"
         @sell-product="handleSellProduct"
         @view-recipe="handleViewRecipe"
         @toggle-active="handleToggleActive"
@@ -166,23 +248,27 @@ const longCount = computed(() => products.value.filter(p => p.shelf_life_hours >
       <div class="sale-panel">
         <h3>Sell {{ selectedProduct.name }}</h3>
         <div class="sale-details">
-          <p class="sale-price">Price: KES {{ selectedProduct.selling_price }}</p>
+          <p class="sale-price">Price: {{ selectedCurrency }} {{ convertedSalePrice }}</p>
           <div class="qty-input">
             <label for="qty">Quantity</label>
             <input id="qty" type="number" min="1" v-model.number="saleQuantity" />
           </div>
-          <p class="total">Total: <span>KES {{ saleTotal.toLocaleString() }}</span></p>
+          <p class="total">Total: <span>{{ selectedCurrency }} {{ formattedSaleTotal }}</span></p>
         </div>
         <div class="sale-actions">
           <button class="btn-cancel" @click="selectedProduct = null">Cancel</button>
           <button class="btn-confirm" @click="confirmSale">Confirm Sale</button>
         </div>
       </div>
+      
     </div>
   </div>
 </template>
 
+
+
 <style scoped>
+
 .products-view {
   padding: 1rem 0;
 }
@@ -220,6 +306,75 @@ const longCount = computed(() => products.value.filter(p => p.shelf_life_hours >
   background: linear-gradient(135deg, #60A5FA, #3B82F6);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+.search-filter-bar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-input-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  font-size: 1.1rem;
+  opacity: 0.7;
+}
+
+.search-input {
+  width: 100%;
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 1rem 1rem 3rem;
+  border-radius: 12px;
+  color: #F8FAFC;
+  font-size: 1.05rem;
+  font-family: inherit;
+  transition: all 0.3s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #60A5FA;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  background: rgba(30, 41, 59, 0.6);
+}
+
+.search-input::placeholder {
+  color: #94A3B8;
+}
+
+.category-select {
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0 1.5rem;
+  border-radius: 12px;
+  color: #F8FAFC;
+  font-size: 1.05rem;
+  font-family: inherit;
+  cursor: pointer;
+  min-width: 160px;
+}
+
+.category-select:focus {
+  outline: none;
+  border-color: #60A5FA;
+}
+
+.category-select option {
+  background: #1E293B;
+  color: #F8FAFC;
 }
 
 .controls-bar {
