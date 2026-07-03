@@ -1,105 +1,34 @@
 <script setup>
 import { ref } from 'vue'
-
-
 </script>
 
 <template>
-<div class="app">
-  <nav class="navbar">
-        <div class="brand"> 
-          <span class="icon">✨</span> Bakery Production
-        </div>
-        <div class="nav-links">
-          <router-link to="/">Dashboard</router-link>
-          <router-link to="/products">Products</router-link>
-          <router-link to="/sales">Sales</router-link>
-          <router-link to="/login">Login</router-link>
-        </div>
-  </nav>
-  <!-- Page content renders here -->
-  <main class="content">
-    <router-view />
-  </main>
+  
+  <div class="min-h-screen font-sans bg-[#121214] text-[#E2E8F0] bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.15)_0%,transparent_40%),radial-gradient(circle_at_bottom_left,rgba(37,99,235,0.1)_0%,transparent_40%)] bg-fixed">
+    
+    
+    <nav class="sticky top-0 z-50 flex items-center justify-between px-12 py-4 bg-[darkblue]/75 backdrop-blur-md border-b border-blue-500/25 shadow-[0_10px_30px_-10px_rgba(2,12,27,0.7)]">
+      
+      
+      <div class="flex items-center gap-2 text-2xl font-bold  from-[#60A5FA] to-[#3B82F6] bg-clip-text text-transparent"> 
+        <span class="inline-flex items-center justify-center w-8 h-8 text-sm text-white bg-green-600 rounded-md">B</span> 
+        Bakery Production
+      </div>
+      
+      <!-- Navigation Links -->
+      <div class="flex gap-8">
+        <router-link to="/" class="px-4 py-2 text-base font-medium text-[#94A3B8] rounded-lg transition-all duration-300 hover:text-[#E2E8F0] hover:bg-white/5" active-class="!text-[#60A5FA] bg-blue-500/10 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.25)]">Dashboard</router-link>
+        <router-link to="/products" class="px-4 py-2 text-base font-medium text-[#94A3B8] rounded-lg transition-all duration-300 hover:text-[#E2E8F0] hover:bg-white/5" active-class="!text-[#60A5FA] bg-blue-500/10 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.25)]">Products</router-link>
+        <router-link to="/production" class="px-4 py-2 text-base font-medium text-[#94A3B8] rounded-lg transition-all duration-300 hover:text-[#E2E8F0] hover:bg-white/5" active-class="!text-[#60A5FA] bg-blue-500/10 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.25)]">Production</router-link>
+        <router-link to="/sales" class="px-4 py-2 text-base font-medium text-[#94A3B8] rounded-lg transition-all duration-300 hover:text-[#E2E8F0] hover:bg-white/5" active-class="!text-[#60A5FA] bg-blue-500/10 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.25)]">Sales</router-link>
+        <router-link to="/login" class="px-4 py-2 text-base font-medium text-[#94A3B8]] rounded-lg transition-all duration-300 hover:text-[#E2E8F0] hover:bg-white/5" active-class="!text-[#60A5FA] bg-blue-500/10 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.25)]">Login</router-link>
+      </div>
+    </nav>
+    
+    
+    <main class="max-w-300 mx-auto my-8 px-4">
+      <router-view />
+    </main>
 
-</div>
+  </div>
 </template>
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Outfit', sans-serif;
-  background-color: #121214;
-  color: #E2E8F0;
-  min-height: 100vh;
-  background-image: radial-gradient(circle at top right, rgba(37, 99, 235, 0.15) 0%, transparent 40%),
-                    radial-gradient(circle at bottom left, rgba(37, 99, 235, 0.1) 0%, transparent 40%);
-  background-attachment: fixed;
-}
-
-.navbar {
-  background: rgba(18, 18, 20, 0.6);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(59, 130, 246, 0.15);
-  color: white;
-  padding: 1rem 3rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-}
-
-.brand {
-  font-size: 1.4rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: linear-gradient(135deg, #60A5FA, #3B82F6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.nav-links {
-  display: flex;
-  gap: 2rem;
-}
-
-.nav-links a {
-  color: #94A3B8;
-  text-decoration: none;
-  font-size: 1rem;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-}
-
-.nav-links a:hover {
-  color: #E2E8F0;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.nav-links a.router-link-active {
-  color: #60A5FA;
-  background: rgba(59, 130, 246, 0.1);
-  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.2);
-}
-
-.content {
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-</style>
