@@ -3,75 +3,51 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
-    // GET /api/products — list all products
     public function index()
     {
-        // For now: hardcoded. Feature 3: Product::all()
-        $products = [
-            [
-                'id' => 1,
-                'name' => 'White Bread',
-                'category' => 'bread',
-                'selling_price' => 60,
-                'shelf_life_hours' => 24,
-                'unit' => 'loaf',
-                'is_active' => true,
-            ],
-            [
-                'id' => 2,
-                'name' => 'Chocolate Cake',
-                'category' => 'cake',
-                'selling_price' => 350,
-                'shelf_life_hours' => 72,
-                'unit' => 'piece',
-                'is_active' => true,
-            ],
-        ];
-
-        return response()->json($products);
+        return Product::orderBy('name')->get();
     }
-    // GET /api/products/{id} — show one product
-    public function show($id)
+
+    public function show(Product $product)
     {
-        // Feature 3: Product::findOrFail($id)
-        return response()->json([
-            'id' => $id,
-            'message' => 'Product detail — will come from database in Feature 3',
-        ]);
+        return $product;
     }
 
-    // POST /api/products — create a product
     public function store(Request $request)
     {
-        //Log::alert('Received request to create product: ' . json_encode($request->all()));
-        info('Received request to create product: ' . json_encode($request->all()));
-        // Feature 3: Product::create($request->validated())
-        return response()->json([
-            'message' => 'Product created' . ' — ID:' .$request->input('id'),
-            'data' => $request->all(),
-        ], 201);
+        $validated = $this->validateProduct($request);
+
+        return response()->json(Product::create($validated), 201);
     }
 
-    // PUT /api/products/{id} — update a product
-    public function update(Request $request, $id)
+    public function update(Request $request, Product $product)
     {
-        return response()->json([
-            'message' => 'Product updated' . ' — ID:' . $id,
-            'data' => $request->all(),
+        $product->update($this->validateProduct($request, true));
+
+        return $product;
+    }
+
+    public function destroy(Product $product)
+    {
+        $product->delete();
+
+        return response()->noContent();
+    }
+
+    private function validateProduct(Request $request, bool $partial = false): array
+    {
+        return $request->validate([
+            'name' => [$partial ? 'sometimes' : 'required', 'string', 'max:255'],
+            'category' => [$partial ? 'sometimes' : 'required', 'string', 'max:100'],
+            'selling_price' => [($partial ? 'sometimes' : 'required'), 'numeric', 'min:0'],
+            'shelf_life_hours' => [($partial ? 'sometimes' : 'required'), 'integer', 'min:1'],
+            'unit' => [$partial ? 'sometimes' : 'required', 'string', 'max:50'],
+            'is_active' => [($partial ? 'sometimes' : 'required'), 'boolean'],
         ]);
     }
-
-    // DELETE /api/products/{id} — delete a product
-    public function destroy($id)
-    {
-        return response()->json([
-            'message' => 'Product deleted' . ' — ID:' . $id,
-        ]);
-    }
-
 }

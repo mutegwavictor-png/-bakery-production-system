@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
+            $table->string('name')->unique();
+            $table->string('category');
+            $table->decimal('selling_price', 10, 2);
+            $table->unsignedInteger('shelf_life_hours');
+            $table->string('unit');
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

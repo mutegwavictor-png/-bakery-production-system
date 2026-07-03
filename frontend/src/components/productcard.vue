@@ -1,6 +1,5 @@
 <script setup>
 import { computed } from 'vue'
-import salescard from '@/stores/productVue.js'
  
 const props = defineProps({
   product: {
